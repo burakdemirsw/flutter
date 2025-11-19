@@ -160,7 +160,8 @@ void testWidgets(
     variant.values.isNotEmpty,
     'There must be at least one value to test in the testing variant.',
   );
-  final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
+  final TestWidgetsFlutterBinding binding =
+      TestWidgetsFlutterBinding.ensureInitialized();
   final WidgetTester tester = WidgetTester._(binding);
   for (final dynamic value in variant.values) {
     final String variationDescription = variant.describeValue(value);
@@ -187,8 +188,12 @@ void testWidgets(
             Object? memento;
             try {
               memento = await variant.setUp(value);
-              binding.reset(); // TODO(ianh): the binding should just do this itself in _runTest
-              maybeSetupLeakTrackingForTest(experimentalLeakTesting, combinedDescription);
+              binding
+                  .reset(); // TODO(ianh): the binding should just do this itself in _runTest
+              maybeSetupLeakTrackingForTest(
+                experimentalLeakTesting,
+                combinedDescription,
+              );
               await callback(tester);
             } finally {
               await variant.tearDown(value, memento);
@@ -278,22 +283,32 @@ class TargetPlatformVariant extends TestVariant<TargetPlatform> {
   /// Creates a [TargetPlatformVariant] that tests all values from
   /// the [TargetPlatform] enum. If [excluding] is provided, will test all platforms
   /// except those in [excluding].
-  TargetPlatformVariant.all({Set<TargetPlatform> excluding = const <TargetPlatform>{}})
-    : values = TargetPlatform.values.toSet()..removeAll(excluding);
+  TargetPlatformVariant.all({
+    Set<TargetPlatform> excluding = const <TargetPlatform>{},
+  }) : values = TargetPlatform.values.toSet()..removeAll(excluding);
 
   /// Creates a [TargetPlatformVariant] that includes platforms that are
   /// considered desktop platforms.
   TargetPlatformVariant.desktop()
-    : values = <TargetPlatform>{TargetPlatform.linux, TargetPlatform.macOS, TargetPlatform.windows};
+    : values = <TargetPlatform>{
+        TargetPlatform.linux,
+        TargetPlatform.macOS,
+        TargetPlatform.windows,
+      };
 
   /// Creates a [TargetPlatformVariant] that includes platforms that are
   /// considered mobile platforms.
   TargetPlatformVariant.mobile()
-    : values = <TargetPlatform>{TargetPlatform.android, TargetPlatform.iOS, TargetPlatform.fuchsia};
+    : values = <TargetPlatform>{
+        TargetPlatform.android,
+        TargetPlatform.iOS,
+        TargetPlatform.fuchsia,
+      };
 
   /// Creates a [TargetPlatformVariant] that tests only the given value of
   /// [TargetPlatform].
-  TargetPlatformVariant.only(TargetPlatform platform) : values = <TargetPlatform>{platform};
+  TargetPlatformVariant.only(TargetPlatform platform)
+    : values = <TargetPlatform>{platform};
 
   @override
   final Set<TargetPlatform> values;
@@ -303,7 +318,8 @@ class TargetPlatformVariant extends TestVariant<TargetPlatform> {
 
   @override
   Future<TargetPlatform?> setUp(TargetPlatform value) async {
-    final TargetPlatform? previousTargetPlatform = debugDefaultTargetPlatformOverride;
+    final TargetPlatform? previousTargetPlatform =
+        debugDefaultTargetPlatformOverride;
     debugDefaultTargetPlatformOverride = value;
     return previousTargetPlatform;
   }
@@ -440,7 +456,8 @@ Future<void> benchmarkWidgets(
     debugPrint(kDebugWarning);
     return true;
   }());
-  final TestWidgetsFlutterBinding binding = TestWidgetsFlutterBinding.ensureInitialized();
+  final TestWidgetsFlutterBinding binding =
+      TestWidgetsFlutterBinding.ensureInitialized();
   assert(binding is! AutomatedTestWidgetsFlutterBinding);
   final WidgetTester tester = WidgetTester._(binding);
   SemanticsHandle? semanticsHandle;
@@ -538,7 +555,8 @@ Future<void> expectLater(
 /// [LiveTestWidgetsFlutterBinding.deviceEventDispatcher] will be handled in
 /// [dispatchEvent]. Thus, using `flutter run` to run a test lets one tap on
 /// the screen to generate [Finder]s relevant to the test.
-class WidgetTester extends WidgetController implements HitTestDispatcher, TickerProvider {
+class WidgetTester extends WidgetController
+    implements HitTestDispatcher, TickerProvider {
   WidgetTester._(super.binding) {
     if (binding is LiveTestWidgetsFlutterBinding) {
       (binding as LiveTestWidgetsFlutterBinding).deviceEventDispatcher = this;
@@ -551,7 +569,8 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
 
   /// The binding instance used by the testing framework.
   @override
-  TestWidgetsFlutterBinding get binding => super.binding as TestWidgetsFlutterBinding;
+  TestWidgetsFlutterBinding get binding =>
+      super.binding as TestWidgetsFlutterBinding;
 
   /// Renders the UI from the given [widget].
   ///
@@ -593,14 +612,18 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
     bool wrapWithView = true,
   }) {
     return TestAsyncUtils.guard<void>(() {
-      binding.attachRootWidget(wrapWithView ? binding.wrapWithDefaultView(widget) : widget);
+      binding.attachRootWidget(
+        wrapWithView ? binding.wrapWithDefaultView(widget) : widget,
+      );
       binding.scheduleFrame();
       return binding.pump(duration, phase);
     });
   }
 
   @override
-  Future<List<Duration>> handlePointerEventRecord(Iterable<PointerEventRecord> records) {
+  Future<List<Duration>> handlePointerEventRecord(
+    Iterable<PointerEventRecord> records,
+  ) {
     assert(records.isNotEmpty);
     return TestAsyncUtils.guard<List<Duration>>(() async {
       final List<Duration> handleTimeStampDiff = <Duration>[];
@@ -614,14 +637,22 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
           // Flush all past events
           handleTimeStampDiff.add(-timeDiff);
           for (final PointerEvent event in record.events) {
-            binding.handlePointerEventForSource(event, source: TestBindingEventSource.test);
+            binding.handlePointerEventForSource(
+              event,
+              source: TestBindingEventSource.test,
+            );
           }
         } else {
           await binding.pump();
           await binding.delayed(timeDiff);
-          handleTimeStampDiff.add(binding.clock.now().difference(startTime) - record.timeDelay);
+          handleTimeStampDiff.add(
+            binding.clock.now().difference(startTime) - record.timeDelay,
+          );
           for (final PointerEvent event in record.events) {
-            binding.handlePointerEventForSource(event, source: TestBindingEventSource.test);
+            binding.handlePointerEventForSource(
+              event,
+              source: TestBindingEventSource.test,
+            );
           }
         }
       }
@@ -648,7 +679,10 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
   /// See also [LiveTestWidgetsFlutterBindingFramePolicy], which affects how
   /// this method works when the test is run with `flutter run`.
   @override
-  Future<void> pump([Duration? duration, EnginePhase phase = EnginePhase.sendSemanticsUpdate]) {
+  Future<void> pump([
+    Duration? duration,
+    EnginePhase phase = EnginePhase.sendSemanticsUpdate,
+  ]) {
     return TestAsyncUtils.guard<void>(() => binding.pump(duration, phase));
   }
 
@@ -664,7 +698,8 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
     assert(() {
       final TestWidgetsFlutterBinding widgetsBinding = binding;
       return widgetsBinding is LiveTestWidgetsFlutterBinding &&
-          widgetsBinding.framePolicy == LiveTestWidgetsFlutterBindingFramePolicy.benchmark;
+          widgetsBinding.framePolicy ==
+              LiveTestWidgetsFlutterBindingFramePolicy.benchmark;
     }());
 
     dynamic caughtException;
@@ -699,7 +734,8 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
     assert(() {
       final WidgetsBinding binding = this.binding;
       if (binding is LiveTestWidgetsFlutterBinding &&
-          binding.framePolicy == LiveTestWidgetsFlutterBindingFramePolicy.benchmark) {
+          binding.framePolicy ==
+              LiveTestWidgetsFlutterBindingFramePolicy.benchmark) {
         matcher_expect.fail(
           'When using LiveTestWidgetsFlutterBindingFramePolicy.benchmark, '
           'hasScheduledFrame is never set to true. This means that pumpAndSettle() '
@@ -761,7 +797,8 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
     );
     return TestAsyncUtils.guard<void>(() async {
       final RootWidget widget = binding.rootElement!.widget as RootWidget;
-      final TestRestorationData restorationData = binding.restorationManager.restorationData;
+      final TestRestorationData restorationData =
+          binding.restorationManager.restorationData;
       runApp(Container(key: UniqueKey()));
       await pump();
       binding.restorationManager.restoreFrom(restorationData);
@@ -866,7 +903,10 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
   @override
   Future<void> sendEventToBinding(PointerEvent event) {
     return TestAsyncUtils.guard<void>(() async {
-      binding.handlePointerEventForSource(event, source: TestBindingEventSource.test);
+      binding.handlePointerEventForSource(
+        event,
+        source: TestBindingEventSource.test,
+      );
     });
   }
 
@@ -882,7 +922,8 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
           .map((HitTestEntry candidate) => candidate.target)
           .whereType<RenderObject>()
           .first;
-      final Element? innerTargetElement = binding.renderViews.contains(innerTarget)
+      final Element? innerTargetElement =
+          binding.renderViews.contains(innerTarget)
           ? null
           : _lastWhereOrNull(
               collectAllElementsFrom(binding.rootElement!, skipOffstage: true),
@@ -902,7 +943,9 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
       int numberOfWithTexts = 0;
       int numberOfTypes = 0;
       int totalNumber = 0;
-      printToConsole('Some possible finders for the widgets at ${event.position}:');
+      printToConsole(
+        'Some possible finders for the widgets at ${event.position}:',
+      );
       for (final Element element in candidates) {
         if (totalNumber > 13) {
           break;
@@ -911,7 +954,8 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
 
         final Widget widget = element.widget;
         if (widget is Tooltip) {
-          final String message = widget.message ?? widget.richMessage!.toPlainText();
+          final String message =
+              widget.message ?? widget.richMessage!.toPlainText();
           final Iterable<Element> matches = find.byTooltip(message).evaluate();
           if (matches.length == 1) {
             printToConsole("  find.byTooltip('$message')");
@@ -934,7 +978,9 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
         final Key? key = widget.key;
         if (key is ValueKey<dynamic>) {
           final String? keyLabel = switch (key.value) {
-            int() || double() || bool() => 'const ${key.runtimeType}(${key.value})',
+            int() ||
+            double() ||
+            bool() => 'const ${key.runtimeType}(${key.value})',
             final String value => "const Key('$value')",
             _ => null,
           };
@@ -949,7 +995,9 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
 
         if (!_isPrivate(widget.runtimeType)) {
           if (numberOfTypes < 5) {
-            final Iterable<Element> matches = find.byType(widget.runtimeType).evaluate();
+            final Iterable<Element> matches = find
+                .byType(widget.runtimeType)
+                .evaluate();
             if (matches.length == 1) {
               printToConsole('  find.byType(${widget.runtimeType})');
               numberOfTypes += 1;
@@ -962,7 +1010,9 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
                 .widgetWithText(widget.runtimeType, descendantText)
                 .evaluate();
             if (matches.length == 1) {
-              printToConsole("  find.widgetWithText(${widget.runtimeType}, '$descendantText')");
+              printToConsole(
+                "  find.widgetWithText(${widget.runtimeType}, '$descendantText')",
+              );
               numberOfWithTexts += 1;
               continue;
             }
@@ -970,14 +1020,17 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
         }
 
         if (!_isPrivate(element.runtimeType)) {
-          final Iterable<Element> matches = find.byElementType(element.runtimeType).evaluate();
+          final Iterable<Element> matches = find
+              .byElementType(element.runtimeType)
+              .evaluate();
           if (matches.length == 1) {
             printToConsole('  find.byElementType(${element.runtimeType})');
             continue;
           }
         }
 
-        totalNumber -= 1; // if we got here, we didn't actually find something to say about it
+        totalNumber -=
+            1; // if we got here, we didn't actually find something to say about it
       }
       if (totalNumber == 0) {
         printToConsole('  <could not come up with any unique finders>');
@@ -1174,7 +1227,11 @@ class WidgetTester extends WidgetController implements HitTestDispatcher, Ticker
         backButton = find.byType(CupertinoNavigationBarBackButton);
       }
 
-      expectSync(backButton, findsOneWidget, reason: 'One back button expected on screen');
+      expectSync(
+        backButton,
+        findsOneWidget,
+        reason: 'One back button expected on screen',
+      );
 
       await tap(backButton);
     });
